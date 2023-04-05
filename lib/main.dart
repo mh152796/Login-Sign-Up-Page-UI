@@ -1,10 +1,13 @@
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
-
 import 'screen/login_signup.dart';
 
-void main() {
+void main() async{
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp();
   runApp(LoginSignupUI());
 }
+
 
 class LoginSignupUI extends StatelessWidget {
   const LoginSignupUI({Key? key}) : super(key: key);

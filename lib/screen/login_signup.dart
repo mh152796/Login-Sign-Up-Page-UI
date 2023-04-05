@@ -1,6 +1,10 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:icons_flutter/icons_flutter.dart';
+import 'package:fluttertoast/fluttertoast.dart';
+import 'home.dart';
 import '../config/palette.dart';
+
 
 class LoginSignupScreen extends StatefulWidget {
   const LoginSignupScreen({Key? key}) : super(key: key);
@@ -15,11 +19,64 @@ class _LoginSignupScreenState extends State<LoginSignupScreen> {
   TextEditingController passwordTextEditingController  = TextEditingController();
   TextEditingController loginUserNameTextEditingController  = TextEditingController();
   TextEditingController loginPasswordTextEditingController  = TextEditingController();
+  late String email;
+  late String password;
+  bool? login;
   //TextEditingController textEditingController  = TextEditingController();
   @override
   void dispose() {
     // TODO: implement dispose
     super.dispose();
+  }
+
+  loginRegister(bool register) async{
+    try {
+      if(register){
+        final credential =  await FirebaseAuth.instance.createUserWithEmailAndPassword(
+          email: email,
+          password: password,
+        );
+        if (credential.user != null)
+        {
+          Fluttertoast.showToast(
+              msg: "Sign Up Successful",
+              toastLength: Toast.LENGTH_SHORT,
+              gravity: ToastGravity.BOTTOM,
+              backgroundColor: Colors.red,
+              textColor: Colors.white,
+              fontSize: 16.0
+          );
+          setState(() {
+            isSignupScreen = ! isSignupScreen;
+          });
+        }
+      }
+      else if(!register){
+        try{
+          final credential =  await FirebaseAuth.instance.signInWithEmailAndPassword(
+            email: email,
+            password: password,
+          );
+          if(credential.user != null)
+          {
+            Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (context) => HomePage(),));
+          }
+        }
+        catch (e){
+          Fluttertoast.showToast(
+              msg: "Wrong user name or password",
+              toastLength: Toast.LENGTH_SHORT,
+              gravity: ToastGravity.BOTTOM,
+              backgroundColor: Colors.red,
+              textColor: Colors.white,
+              fontSize: 16.0
+          );
+        }
+
+      }
+    } catch (e) {
+      print(e);
+    }
   }
   bool isMale = true;
   bool isSignupScreen = true;
@@ -60,7 +117,7 @@ class _LoginSignupScreenState extends State<LoginSignupScreen> {
                           ),
                           children: [
                             TextSpan(
-                                text: isSignupScreen ? ' Rizona, ' : ' Back, ',
+                                text: isSignupScreen ? ' Foods World, ' : ' Back, ',
                                 style: TextStyle(
                                   fontWeight: FontWeight.bold,
                                   color: Colors.yellow[700],
@@ -117,6 +174,9 @@ class _LoginSignupScreenState extends State<LoginSignupScreen> {
                             setState(() {
                               isSignupScreen = false;
                               showHiddenPass = true;
+                              userNameTextEditingController.text = '';
+                              passwordTextEditingController.text = '';
+                              emaiTextEditingController.text = '';
                             });
                           },
                           child: Column(
@@ -145,6 +205,8 @@ class _LoginSignupScreenState extends State<LoginSignupScreen> {
                             setState(() {
                               isSignupScreen = true;
                               showHiddenPass = true;
+                              loginUserNameTextEditingController.text = '';
+                              loginPasswordTextEditingController.text = '';
                             });
                           },
                           child: Column(
@@ -212,31 +274,49 @@ class _LoginSignupScreenState extends State<LoginSignupScreen> {
       top: isSignupScreen ? 535 : 430,
       right: 0,
       left: 0,
-      child: Container(
-        height: 70,
-        width: 70,
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            colors: [
-              Colors.orange.shade200,
-              Colors.red.shade400,
+      child: GestureDetector(
+        onTap: () {
+
+
+          if(isSignupScreen)
+          {
+            email = emaiTextEditingController.text;
+            password = passwordTextEditingController.text;
+            loginRegister(true);
+          }
+          else{
+            email = loginUserNameTextEditingController.text;
+            password = loginPasswordTextEditingController.text;
+            loginRegister(false);
+          }
+
+        },
+        child: Container(
+          height: 70,
+          width: 70,
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [
+                Colors.orange.shade200,
+                Colors.red.shade400,
+              ],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+            shape: BoxShape.circle,
+            border: Border.all(color: Colors.white, width: 10),
+            boxShadow: [
+              BoxShadow(
+                  color: Colors.black.withOpacity(0.3),
+                  spreadRadius: 1,
+                  blurRadius: 2,
+                  offset: Offset(0, 1))
             ],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
           ),
-          shape: BoxShape.circle,
-          border: Border.all(color: Colors.white, width: 10),
-          boxShadow: [
-            BoxShadow(
-                color: Colors.black.withOpacity(0.3),
-                spreadRadius: 1,
-                blurRadius: 2,
-                offset: Offset(0, 1))
-          ],
-        ),
-        child: Icon(
-          Icons.arrow_forward,
-          color: Colors.white,
+          child: Icon(
+            Icons.arrow_forward,
+            color: Colors.white,
+          ),
         ),
       ),
     );
@@ -310,7 +390,7 @@ class _LoginSignupScreenState extends State<LoginSignupScreen> {
                         width: 30,
                         decoration: BoxDecoration(
                           color:
-                              isMale ? Palette.textColor2 : Colors.transparent,
+                          isMale ? Palette.textColor2 : Colors.transparent,
                           border: Border.all(
                               width: 1,
                               color: isMale
@@ -347,7 +427,7 @@ class _LoginSignupScreenState extends State<LoginSignupScreen> {
                         width: 30,
                         decoration: BoxDecoration(
                           color:
-                              isMale ? Colors.transparent : Palette.textColor2,
+                          isMale ? Colors.transparent : Palette.textColor2,
                           border: Border.all(
                               width: 1,
                               color: isMale
@@ -399,7 +479,7 @@ class _LoginSignupScreenState extends State<LoginSignupScreen> {
           minimumSize: Size(150, 40),
           side: BorderSide(width: 1, color: Colors.grey),
           shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
           foregroundColor: Colors.white,
           backgroundColor: backgroundColor,
         ),
@@ -429,14 +509,14 @@ class _LoginSignupScreenState extends State<LoginSignupScreen> {
             ),
 
 
-             suffixIcon: IconButton(onPressed: () {
-               setState(() {
-                 showHiddenPass = !showHiddenPass;
-                 print(showHiddenPass);
-               });
+            suffixIcon: IconButton(onPressed: () {
+              setState(() {
+                showHiddenPass = !showHiddenPass;
+                print(showHiddenPass);
+              });
             }, icon: isPassword? (showHiddenPass? whiteEye : blueEye) : const Icon(null),
 
-             ),
+            ),
 
             enabledBorder: OutlineInputBorder(
               borderSide: BorderSide(color: Palette.textColor1),
